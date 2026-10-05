@@ -153,6 +153,25 @@ describe('jsonl line streaming', () => {
         ]);
     });
 
+    it('stops reverse-reading when a chunk starts with a newline', () => {
+        // The chunk read from the end of the file starts exactly on the newline
+        // that separates the two records.
+        const opening = '{"value":"';
+        const latest = `${opening}${'x'.repeat(JSONL_READ_CHUNK_BYTES - 1 - Buffer.byteLength(opening) - 2)}"}`;
+        const filePath = writeTranscript('reverse-boundary.jsonl', `{"value":1}\n${latest}`);
+
+        // Bounded so a regression fails instead of hanging the suite.
+        const lines: string[] = [];
+        for (const line of iterateJsonlLinesReverseSync(filePath)) {
+            lines.push(line);
+            if (lines.length > 3) {
+                break;
+            }
+        }
+
+        expect(lines).toEqual([latest, '{"value":1}']);
+    });
+
     it('reverse-reads a UTF-8 record spanning multiple chunks', () => {
         const opening = '{"value":"';
         const longLine = `${opening}${'x'.repeat((2 * JSONL_READ_CHUNK_BYTES) - Buffer.byteLength(opening) - 2)}😀"}`;

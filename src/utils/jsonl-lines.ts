@@ -197,7 +197,10 @@ export function* iterateJsonlLinesReverseSync(filePath: string): Generator<strin
                 }
 
                 end = newline;
-                newline = chunk.lastIndexOf(0x0a, end - 1);
+                // A negative byteOffset counts from the end of the buffer, so
+                // once the chunk's first byte was a newline there is nothing
+                // left to search.
+                newline = end > 0 ? chunk.lastIndexOf(0x0a, end - 1) : -1;
             }
 
             if (end > 0) {
