@@ -14,6 +14,7 @@ import {
 
 import type { RenderContext } from '../../types/RenderContext';
 import type { Settings } from '../../types/Settings';
+import { StatusJSONSchema } from '../../types/StatusJSON';
 import type { WidgetItem } from '../../types/Widget';
 import {
     getVisibleText,
@@ -167,6 +168,26 @@ describe('CustomCommandWidget', () => {
     it('still passes through the existing data fields', () => {
         const model = renderParsed(142).model as { display_name?: string } | undefined;
         expect(model?.display_name).toBe('Sonnet');
+    });
+
+    it('passes nested fields ccstatusline does not model through to the command', () => {
+        // Parsed as ccstatusline parses Claude Code's payload, so the command
+        // gets the same JSON even for fields no widget reads
+        const data = StatusJSONSchema.parse({
+            model: { id: 'claude-opus-4-6', display_name: 'Opus 4.6' },
+            workspace: { current_dir: '/repo', project_dir: '/repo', added_dirs: ['/extra'] },
+            context_window: { context_window_size: 200000, future_field: 7 }
+        });
+        const output = widget.render(createItem(), { data, isPreview: false }, settings);
+        if (output === null)
+            throw new Error('expected command output');
+        const received = JSON.parse(output) as {
+            workspace?: { added_dirs?: unknown };
+            context_window?: { future_field?: unknown };
+        };
+
+        expect(received.workspace?.added_dirs).toEqual(['/extra']);
+        expect(received.context_window?.future_field).toBe(7);
     });
 
     it('omits terminal_width when the width is unknown', () => {
