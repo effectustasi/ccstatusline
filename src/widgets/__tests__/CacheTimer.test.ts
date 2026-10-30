@@ -332,4 +332,15 @@ describe('CacheTimer widget', () => {
         expect(widget.getEditorDisplay(item({ metadata: { ttlSeconds: '3600' } })).modifierText).toBe('(ttl 1h)');
         expect(widget.getEditorDisplay(item({ metadata: { ttlSeconds: '3600', hide: 'empty' } })).modifierText).toBe('(ttl 1h)');
     });
+
+    it.each([
+        { ttlSeconds: '90', expected: '(ttl 90s)' },
+        { ttlSeconds: '400', expected: '(ttl 400s)' },
+        { ttlSeconds: '600', expected: '(ttl 10m)' },
+        { ttlSeconds: '5400', expected: '(ttl 90m)' },
+        { ttlSeconds: '7200', expected: '(ttl 2h)' }
+    ])('annotates the editor with the exact custom TTL $ttlSeconds', ({ ttlSeconds, expected }) => {
+        const widget = new CacheTimerWidget();
+        expect(widget.getEditorDisplay(item({ metadata: { ttlSeconds } })).modifierText).toBe(expected);
+    });
 });

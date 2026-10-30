@@ -232,8 +232,16 @@ function cycleTtl(item: WidgetItem): WidgetItem {
     };
 }
 
+// Uses the largest unit that divides the TTL evenly, so a custom value such
+// as 90 seconds is shown as configured instead of being rounded to minutes.
 function formatTtlLabel(ttlSeconds: number): string {
-    return ttlSeconds % 3600 === 0 ? `${ttlSeconds / 3600}h` : `${Math.round(ttlSeconds / 60)}m`;
+    if (ttlSeconds % 3600 === 0) {
+        return `${ttlSeconds / 3600}h`;
+    }
+    if (ttlSeconds % 60 === 0) {
+        return `${ttlSeconds / 60}m`;
+    }
+    return `${ttlSeconds}s`;
 }
 
 function getRemainingSeconds(lastAssistant: Date, ttlSeconds: number): number {
