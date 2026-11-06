@@ -266,6 +266,17 @@ describe('CurrentWorkingDirWidget', () => {
 
             expect(result).toBe('/Users/a/project');
         });
+
+        it('keeps whole graphemes when abbreviating a segment', () => {
+            const item = createItem({ fishStyle: 'true' }, true);
+            const result = widget.render(
+                item,
+                createContext(`${defaultHomeDir}/🚀launch/.🔒vault/👩‍💻dev/app`),
+                defaultSettings
+            );
+
+            expect(result).toBe('~/🚀/.🔒/👩‍💻/app');
+        });
     });
 
     describe('links', () => {

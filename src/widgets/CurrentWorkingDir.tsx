@@ -32,6 +32,7 @@ import {
     getSymbolKeybind,
     renderSymbolOverrideEditor
 } from './shared/symbol-override';
+import { getGraphemes } from './shared/text-cursor';
 
 const LABEL = 'cwd: ';
 const LINK_KEY = 'linkTo';
@@ -303,18 +304,22 @@ export class CurrentWorkingDirWidget implements Widget {
         // Split path into parts
         const parts = normalizedPath.split(/[\\/]+/).filter(part => part !== '');
 
-        // Keep first and last parts full, abbreviate middle parts
+        // Keep first and last parts full, abbreviate middle parts. Characters
+        // are taken by grapheme so a name starting with an emoji keeps the
+        // whole character, not half a surrogate pair.
         const abbreviated = parts.map((part, index) => {
             if (index === 0 || index === parts.length - 1) {
                 return part;  // Keep full
             }
 
+            const graphemes = getGraphemes(part);
+
             // Hidden directories keep the dot
-            if (part.startsWith('.') && part.length > 1) {
-                return '.' + (part[1] ?? '');
+            if (part.startsWith('.') && graphemes.length > 1) {
+                return '.' + (graphemes[1] ?? '');
             }
 
-            return part[0];  // Only first letter for others
+            return graphemes[0] ?? '';  // Only first letter for others
         });
 
         // Rebuild path
